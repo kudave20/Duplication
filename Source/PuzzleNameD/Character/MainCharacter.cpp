@@ -6,6 +6,9 @@
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
+#include "PuzzleNameD/Interfaces/InteractableInterface.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 AMainCharacter::AMainCharacter()
 {
@@ -14,6 +17,8 @@ AMainCharacter::AMainCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(GetMesh());
 	Camera->bUsePawnControlRotation = true;
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 }
 
 void AMainCharacter::BeginPlay()
@@ -33,6 +38,14 @@ void AMainCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (Camera == nullptr || PhysicsHandle == nullptr) return;
+
+	if (PhysicsHandle->GrabbedComponent)
+	{
+		FVector Start = Camera->GetComponentLocation();
+		FVector End = Start + Camera->GetComponentRotation().Vector() * ARM_LENGTH;
+		PhysicsHandle->SetTargetLocation(End);
+	}
 }
 
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -44,6 +57,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AMainCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryGrab);
 	}
 }
 
@@ -66,4 +80,46 @@ void AMainCharacter::Look(const FInputActionValue& Value)
 
 	AddControllerPitchInput(LookAxisVector.Y);
 	AddControllerYawInput(LookAxisVector.X);
+}
+
+void AMainCharacter::TryGrab()
+{
+	if (PhysicsHandle->GrabbedComponent)
+	{
+		Release();
+	}
+	else
+	{
+		Grab();
+	}
+}
+
+void AMainCharacter::Grab()
+{
+	if (Camera == nullptr || PhysicsHandle == nullptr) return;
+
+	FHitResult HitResult;
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + Camera->GetComponentRotation().Vector() * ARM_LENGTH;
+
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility
+	);
+
+	AActor* Interactable = HitResult.GetActor();
+	UPrimitiveComponent* Target = HitResult.GetComponent();
+	if (Interactable && Interactable->Implements<UInteractableInterface>() && Target)
+	{
+		PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
+	}
+}
+
+void AMainCharacter::Release()
+{
+	if (PhysicsHandle == nullptr) return;
+
+	PhysicsHandle->ReleaseComponent();
 }
