@@ -15,12 +15,22 @@ AObjectBase::AObjectBase()
 void AObjectBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void AObjectBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AObjectBase::OnPreview_Implementation()
+{
+	IInteractableInterface::OnPreview_Implementation();
+}
+
+void AObjectBase::OnPlace_Implementation()
+{
+	IInteractableInterface::OnPlace_Implementation();
 }
 

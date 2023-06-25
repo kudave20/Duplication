@@ -7,8 +7,6 @@
 #include "InputActionValue.h"
 #include "MainCharacter.generated.h"
 
-#define ARM_LENGTH 200.f
-
 UCLASS()
 class PUZZLENAMED_API AMainCharacter : public ACharacter
 {
@@ -37,11 +35,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* GrabAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* DuplicateAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void TryGrab();
 	void Grab();
+	void Grab(UPrimitiveComponent* Target);
 	void Release();
+	void Duplicate();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -49,6 +52,14 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UPhysicsHandleComponent* PhysicsHandle;
+
+	UPROPERTY(EditAnywhere, Category = "Length")
+	float ArmLength = 300.f;
+
+	UPROPERTY(EditAnywhere, Category = "Length")
+	float DuplicateLength = 50.f;
+
+	float Length;
 
 public:
 

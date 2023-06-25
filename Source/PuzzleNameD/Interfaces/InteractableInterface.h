@@ -22,6 +22,9 @@ class PUZZLENAMED_API IInteractableInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interaction")
-	//void OnGrab();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Preview")
+	void OnPreview();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Preview")
+	void OnPlace();
 };

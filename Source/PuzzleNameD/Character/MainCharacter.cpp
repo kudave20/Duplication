@@ -43,7 +43,7 @@ void AMainCharacter::Tick(float DeltaTime)
 	if (PhysicsHandle->GrabbedComponent)
 	{
 		FVector Start = Camera->GetComponentLocation();
-		FVector End = Start + Camera->GetComponentRotation().Vector() * ARM_LENGTH;
+		FVector End = Start + Camera->GetComponentRotation().Vector() * Length;
 		PhysicsHandle->SetTargetLocation(End);
 	}
 }
@@ -58,6 +58,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryGrab);
+		EnhancedInputComponent->BindAction(DuplicateAction, ETriggerEvent::Triggered, this, &AMainCharacter::Duplicate);
 	}
 }
 
@@ -100,8 +101,7 @@ void AMainCharacter::Grab()
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
-	FVector End = Start + Camera->GetComponentRotation().Vector() * ARM_LENGTH;
-
+	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
 	GetWorld()->LineTraceSingleByChannel(
 		HitResult,
 		Start,
@@ -114,12 +114,57 @@ void AMainCharacter::Grab()
 	if (Interactable && Interactable->Implements<UInteractableInterface>() && Target)
 	{
 		PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
+		Length = (Target->GetComponentLocation() - Camera->GetComponentLocation()).Size();
 	}
+}
+
+void AMainCharacter::Grab(UPrimitiveComponent* Target)
+{
+	if (PhysicsHandle == nullptr || Target == nullptr) return;
+
+	PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
 }
 
 void AMainCharacter::Release()
 {
 	if (PhysicsHandle == nullptr) return;
 
+	UPrimitiveComponent* Component = PhysicsHandle->GrabbedComponent;
+	if (Component && Component->GetOwner())
+	{
+		Component->GetOwner()->SetActorEnableCollision(true);
+		IInteractableInterface::Execute_OnPlace(Component->GetOwner());
+	}
 	PhysicsHandle->ReleaseComponent();
+}
+
+void AMainCharacter::Duplicate()
+{
+	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return;
+
+	FHitResult HitResult;
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility
+	);
+
+	AActor* Interactable = HitResult.GetActor();
+	if (Interactable && Interactable->Implements<UInteractableInterface>())
+	{
+		Length = DuplicateLength;
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = Interactable;
+		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(Interactable->GetClass(), Start + Camera->GetComponentRotation().Vector() * DuplicateLength, Interactable->GetActorRotation(), SpawnParams);
+		if (SpawnedActor)
+		{
+			SpawnedActor->SetActorEnableCollision(false);
+			IInteractableInterface::Execute_OnPreview(SpawnedActor);
+			UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
+			Grab(TargetComponent);
+		}
+	}
 }
