@@ -27,10 +27,14 @@ void AObjectBase::Tick(float DeltaTime)
 void AObjectBase::OnPreview_Implementation()
 {
 	IInteractableInterface::OnPreview_Implementation();
+
+	Mesh->SetMaterial(0, PreviewMaterial);
 }
 
 void AObjectBase::OnPlace_Implementation()
 {
 	IInteractableInterface::OnPlace_Implementation();
+
+	Mesh->SetMaterial(0, OriginalMaterial);
 }
 

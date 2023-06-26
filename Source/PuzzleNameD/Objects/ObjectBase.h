@@ -21,6 +21,7 @@ protected:
 	virtual void OnPreview_Implementation() override;
 	virtual void OnPlace_Implementation() override;
 
+private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* Mesh;
 

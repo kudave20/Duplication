@@ -13,8 +13,5 @@ UCLASS()
 class PUZZLENAMED_API ACube : public AObjectBase
 {
 	GENERATED_BODY()
-	
-protected:
-	virtual void OnPreview_Implementation() override;
-	virtual void OnPlace_Implementation() override;
+
 };
