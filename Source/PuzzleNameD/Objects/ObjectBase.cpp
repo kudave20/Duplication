@@ -2,7 +2,6 @@
 
 
 #include "ObjectBase.h"
-#include "GeometryCollection/GeometryCollectionComponent.h"
 
 AObjectBase::AObjectBase()
 {
@@ -12,8 +11,7 @@ AObjectBase::AObjectBase()
 	SetRootComponent(Mesh);
 	Mesh->SetSimulatePhysics(true);
 
-	GeometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollection"));
-	GeometryCollection->SetupAttachment(Mesh);
+	DisappearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DisappearTimeline"));
 }
 
 void AObjectBase::BeginPlay()
@@ -52,6 +50,34 @@ void AObjectBase::OnDisappear_Implementation()
 {
 	IInteractableInterface::OnDisappear_Implementation();
 
-	Destroy();
+	if (GetOwner() && Mesh)
+	{
+		SetActorEnableCollision(false);
+		Mesh->SetEnableGravity(false);
+		StartDisappear();
+	}
 }
 
+void AObjectBase::ClearAll(float DisappearValue)
+{
+	FVector NewLocation = FMath::Lerp(GetActorLocation(), GetOwner()->GetActorLocation(), DisappearValue);
+	FRotator NewRotation = FMath::Lerp(GetActorRotation(), GetOwner()->GetActorRotation(), DisappearValue);
+	SetActorLocationAndRotation(NewLocation, NewRotation);
+}
+
+void AObjectBase::StartDisappear()
+{
+	DisappearTrack.BindDynamic(this, &AObjectBase::ClearAll);
+	DisappearTimelineFinished.BindDynamic(this, &AObjectBase::DisappearFinished);
+	if (DisappearCurve && DisappearTimeline)
+	{
+		DisappearTimeline->AddInterpFloat(DisappearCurve, DisappearTrack);
+		DisappearTimeline->PlayFromStart();
+		DisappearTimeline->SetTimelineFinishedFunc(DisappearTimelineFinished);
+	}
+}
+
+void AObjectBase::DisappearFinished()
+{
+	Destroy();
+}

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PuzzleNameD/Interfaces/InteractableInterface.h"
+#include "Components/TimelineComponent.h"
 #include "ObjectBase.generated.h"
 
 UCLASS()
@@ -26,20 +27,32 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* Mesh;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class UGeometryCollectionComponent* GeometryCollection;
-
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* PreviewMaterial;
 
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* OriginalMaterial;
 
-	UPROPERTY(EditAnywhere, Category = "Geometry Collection")
-	class UGeometryCollection* Breakable;
-
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	int32 Mass;
+
+	/*
+	* Disappear Effect
+	*/
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DisappearTimeline;
+	FOnTimelineFloat DisappearTrack;
+	FOnTimelineEvent DisappearTimelineFinished;
+
+	UPROPERTY(EditAnywhere, Category = "Curves")
+	UCurveFloat* DisappearCurve;
+
+	UFUNCTION()
+	void ClearAll(float DisappearValue);
+	void StartDisappear();
+
+	UFUNCTION()
+	void DisappearFinished();
 
 	UPROPERTY()
 	TArray<AObjectBase*> DuplicatedObjects;

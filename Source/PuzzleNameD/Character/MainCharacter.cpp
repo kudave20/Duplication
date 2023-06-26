@@ -216,8 +216,8 @@ int32 AMainCharacter::Delete()
 		if (Object)
 		{
 			Mass = Object->GetMass();
+			IInteractableInterface::Execute_OnDisappear(Object);
 		}
-		IInteractableInterface::Execute_OnDisappear(Interactable);
 	}
 
 	return Mass;
@@ -254,8 +254,8 @@ int32 AMainCharacter::Clear()
 				if (TargetObject)
 				{
 					TotalMass += TargetObject->GetMass();
+					IInteractableInterface::Execute_OnDisappear(TargetObject);
 				}
-				IInteractableInterface::Execute_OnDisappear(TargetActor);
 			}
 		}
 	}
