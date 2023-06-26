@@ -18,3 +18,10 @@ void AMassCharacter::TryDelete()
 
 	DuplicatedMass -= TargetMass;
 }
+
+void AMassCharacter::TryClear()
+{
+	int32 TargetMass = Super::Clear();
+
+	DuplicatedMass -= TargetMass;
+}

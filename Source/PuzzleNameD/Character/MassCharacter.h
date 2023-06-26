@@ -17,6 +17,7 @@ class PUZZLENAMED_API AMassCharacter : public AMainCharacter
 protected:
 	virtual void TryDuplicate() override;
 	virtual void TryDelete() override;
+	virtual void TryClear() override;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Ability")

@@ -20,10 +20,14 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void OnPreview_Implementation() override;
 	virtual void OnPlace_Implementation() override;
+	virtual void OnDisappear_Implementation() override;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* Mesh;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UGeometryCollectionComponent* GeometryCollection;
 
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* PreviewMaterial;
@@ -31,8 +35,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* OriginalMaterial;
 
+	UPROPERTY(EditAnywhere, Category = "Geometry Collection")
+	class UGeometryCollection* Breakable;
+
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	int32 Mass;
+
+	UPROPERTY()
+	TArray<AObjectBase*> DuplicatedObjects;
 
 public:
 	FORCEINLINE int32 GetMass() const { return Mass; }

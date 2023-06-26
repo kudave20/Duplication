@@ -41,6 +41,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* DeleteAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* ClearAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void TryGrab();
@@ -51,6 +54,8 @@ protected:
 	int32 Duplicate();
 	virtual void TryDelete();
 	int32 Delete();
+	virtual void TryClear();
+	int32 Clear();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)

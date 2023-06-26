@@ -2,6 +2,7 @@
 
 
 #include "ObjectBase.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
 
 AObjectBase::AObjectBase()
 {
@@ -10,6 +11,9 @@ AObjectBase::AObjectBase()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
 	Mesh->SetSimulatePhysics(true);
+
+	GeometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollection"));
+	GeometryCollection->SetupAttachment(Mesh);
 }
 
 void AObjectBase::BeginPlay()
@@ -28,13 +32,26 @@ void AObjectBase::OnPreview_Implementation()
 {
 	IInteractableInterface::OnPreview_Implementation();
 
-	Mesh->SetMaterial(0, PreviewMaterial);
+	if (Mesh)
+	{
+		Mesh->SetMaterial(0, PreviewMaterial);
+	}
 }
 
 void AObjectBase::OnPlace_Implementation()
 {
 	IInteractableInterface::OnPlace_Implementation();
 
-	Mesh->SetMaterial(0, OriginalMaterial);
+	if (Mesh)
+	{
+		Mesh->SetMaterial(0, OriginalMaterial);
+	}
+}
+
+void AObjectBase::OnDisappear_Implementation()
+{
+	IInteractableInterface::OnDisappear_Implementation();
+
+	Destroy();
 }
 

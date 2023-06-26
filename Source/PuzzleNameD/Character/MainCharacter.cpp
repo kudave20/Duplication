@@ -61,6 +61,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryGrab);
 		EnhancedInputComponent->BindAction(DuplicateAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDuplicate);
 		EnhancedInputComponent->BindAction(DeleteAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDelete);
+		EnhancedInputComponent->BindAction(ClearAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryClear);
 	}
 }
 
@@ -164,7 +165,14 @@ int32 AMainCharacter::Duplicate()
 	{
 		Length = DuplicateLength;
 		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = Interactable;
+		if (Interactable->GetOwner())
+		{
+			SpawnParams.Owner = Interactable->GetOwner();
+		}
+		else
+		{
+			SpawnParams.Owner = Interactable;
+		}
 		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(Interactable->GetClass(), Start + Camera->GetComponentRotation().Vector() * DuplicateLength, Interactable->GetActorRotation(), SpawnParams);
 		if (SpawnedActor)
 		{
@@ -200,16 +208,57 @@ int32 AMainCharacter::Delete()
 		ECollisionChannel::ECC_Visibility
 	);
 
+	int32 Mass = 0;
 	AActor* Interactable = HitResult.GetActor();
 	if (Interactable && Interactable->Implements<UInteractableInterface>() && Interactable->GetOwner())
 	{
-		Interactable->Destroy();
 		AObjectBase* Object = Cast<AObjectBase>(Interactable);
 		if (Object)
 		{
-			return Object->GetMass();
+			Mass = Object->GetMass();
+		}
+		IInteractableInterface::Execute_OnDisappear(Interactable);
+	}
+
+	return Mass;
+}
+
+void AMainCharacter::TryClear()
+{
+	Clear();
+}
+
+int32 AMainCharacter::Clear()
+{
+	FHitResult HitResult;
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility
+	);
+
+	int32 TotalMass = 0;
+	AActor* Interactable = HitResult.GetActor();
+	if (Interactable && Interactable->Implements<UInteractableInterface>())
+	{
+		TArray<AActor*> TargetActors;
+		UGameplayStatics::GetAllActorsOfClass(this, Interactable->GetClass(), TargetActors);
+		for (AActor* TargetActor : TargetActors)
+		{
+			if (TargetActor && TargetActor->GetOwner())
+			{
+				AObjectBase* TargetObject = Cast<AObjectBase>(TargetActor);
+				if (TargetObject)
+				{
+					TotalMass += TargetObject->GetMass();
+				}
+				IInteractableInterface::Execute_OnDisappear(TargetActor);
+			}
 		}
 	}
 
-	return 0;
+	return TotalMass;
 }
