@@ -44,7 +44,8 @@ protected:
 	void Grab();
 	void Grab(UPrimitiveComponent* Target);
 	void Release();
-	void Duplicate();
+	virtual void TryDuplicate();
+	int32 Duplicate();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -57,7 +58,7 @@ private:
 	float ArmLength = 300.f;
 
 	UPROPERTY(EditAnywhere, Category = "Length")
-	float DuplicateLength = 50.f;
+	float DuplicateLength = 150.f;
 
 	float Length;
 

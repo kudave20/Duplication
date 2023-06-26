@@ -31,6 +31,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* OriginalMaterial;
 
-public:
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	int32 Mass;
 
+public:
+	FORCEINLINE int32 GetMass() const { return Mass; }
 };

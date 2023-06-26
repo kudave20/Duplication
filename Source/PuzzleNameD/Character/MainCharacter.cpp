@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PuzzleNameD/Interfaces/InteractableInterface.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "PuzzleNameD/Objects/ObjectBase.h"
 
 AMainCharacter::AMainCharacter()
 {
@@ -58,7 +59,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryGrab);
-		EnhancedInputComponent->BindAction(DuplicateAction, ETriggerEvent::Triggered, this, &AMainCharacter::Duplicate);
+		EnhancedInputComponent->BindAction(DuplicateAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDuplicate);
 	}
 }
 
@@ -138,9 +139,14 @@ void AMainCharacter::Release()
 	PhysicsHandle->ReleaseComponent();
 }
 
-void AMainCharacter::Duplicate()
+void AMainCharacter::TryDuplicate()
 {
-	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return;
+	Duplicate();
+}
+
+int32 AMainCharacter::Duplicate()
+{
+	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -165,6 +171,13 @@ void AMainCharacter::Duplicate()
 			IInteractableInterface::Execute_OnPreview(SpawnedActor);
 			UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
 			Grab(TargetComponent);
+			AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
+			if (SpawnedObject)
+			{
+				return SpawnedObject->GetMass();
+			}
 		}
 	}
+
+	return 0;
 }
