@@ -11,3 +11,10 @@ void AMassCharacter::TryDuplicate()
 
 	DuplicatedMass += TargetMass;
 }
+
+void AMassCharacter::TryDelete()
+{
+	int32 TargetMass = Super::Delete();
+
+	DuplicatedMass -= TargetMass;
+}

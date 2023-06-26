@@ -60,6 +60,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryGrab);
 		EnhancedInputComponent->BindAction(DuplicateAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDuplicate);
+		EnhancedInputComponent->BindAction(DeleteAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDelete);
 	}
 }
 
@@ -176,6 +177,37 @@ int32 AMainCharacter::Duplicate()
 			{
 				return SpawnedObject->GetMass();
 			}
+		}
+	}
+
+	return 0;
+}
+
+void AMainCharacter::TryDelete()
+{
+	Delete();
+}
+
+int32 AMainCharacter::Delete()
+{
+	FHitResult HitResult;
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility
+	);
+
+	AActor* Interactable = HitResult.GetActor();
+	if (Interactable && Interactable->Implements<UInteractableInterface>() && Interactable->GetOwner())
+	{
+		Interactable->Destroy();
+		AObjectBase* Object = Cast<AObjectBase>(Interactable);
+		if (Object)
+		{
+			return Object->GetMass();
 		}
 	}
 

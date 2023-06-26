@@ -38,6 +38,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* DuplicateAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* DeleteAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void TryGrab();
@@ -46,6 +49,8 @@ protected:
 	void Release();
 	virtual void TryDuplicate();
 	int32 Duplicate();
+	virtual void TryDelete();
+	int32 Delete();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -55,7 +60,7 @@ private:
 	class UPhysicsHandleComponent* PhysicsHandle;
 
 	UPROPERTY(EditAnywhere, Category = "Length")
-	float ArmLength = 300.f;
+	float ArmLength = 250.f;
 
 	UPROPERTY(EditAnywhere, Category = "Length")
 	float DuplicateLength = 150.f;
