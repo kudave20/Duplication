@@ -51,11 +51,11 @@ protected:
 	void Grab(UPrimitiveComponent* Target);
 	void Release();
 	virtual void TryDuplicate();
-	int32 Duplicate();
+	float Duplicate(class AObjectBase*& OriginalObject, AObjectBase*& DuplicatedObject);
 	virtual void TryDelete();
-	int32 Delete();
+	float Delete();
 	virtual void TryClear();
-	int32 Clear();
+	float Clear();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)

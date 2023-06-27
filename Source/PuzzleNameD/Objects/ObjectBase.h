@@ -34,7 +34,7 @@ private:
 	UMaterialInstance* OriginalMaterial;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
-	int32 Mass;
+	float Mass;
 
 	/*
 	* Disappear Effect
@@ -58,5 +58,6 @@ private:
 	TArray<AObjectBase*> DuplicatedObjects;
 
 public:
-	FORCEINLINE int32 GetMass() const { return Mass; }
+	FORCEINLINE float GetMass() const { return Mass; }
+	FORCEINLINE void SetMass(float InMass) { Mass = InMass; }
 };

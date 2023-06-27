@@ -2,26 +2,29 @@
 
 
 #include "MassCharacter.h"
+#include "PuzzleNameD/Objects/ObjectBase.h"
 
 void AMassCharacter::TryDuplicate()
 {
 	if (DuplicatedMass >= AbilityMass) return;
 
-	int32 TargetMass = Super::Duplicate();
+	AObjectBase* FirstObject = nullptr;
+	AObjectBase* SecondObject = nullptr;
+	float TargetMass = Super::Duplicate(FirstObject, SecondObject);
 
 	DuplicatedMass += TargetMass;
 }
 
 void AMassCharacter::TryDelete()
 {
-	int32 TargetMass = Super::Delete();
+	float TargetMass = Super::Delete();
 
 	DuplicatedMass -= TargetMass;
 }
 
 void AMassCharacter::TryClear()
 {
-	int32 TargetMass = Super::Clear();
+	float TargetMass = Super::Clear();
 
 	DuplicatedMass -= TargetMass;
 }

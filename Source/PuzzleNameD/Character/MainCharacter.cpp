@@ -143,12 +143,14 @@ void AMainCharacter::Release()
 
 void AMainCharacter::TryDuplicate()
 {
-	Duplicate();
+	AObjectBase* FirstObject = nullptr;
+	AObjectBase* SecondObject = nullptr;
+	Duplicate(FirstObject, SecondObject);
 }
 
-int32 AMainCharacter::Duplicate()
+float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& DuplicatedObject)
 {
-	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0;
+	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0.0f;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -160,6 +162,7 @@ int32 AMainCharacter::Duplicate()
 		ECollisionChannel::ECC_Visibility
 	);
 
+	float Mass = 0.0f;
 	AActor* Interactable = HitResult.GetActor();
 	if (Interactable && Interactable->Implements<UInteractableInterface>())
 	{
@@ -180,15 +183,18 @@ int32 AMainCharacter::Duplicate()
 			IInteractableInterface::Execute_OnPreview(SpawnedActor);
 			UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
 			Grab(TargetComponent);
+			AObjectBase* InteractableObject = Cast<AObjectBase>(Interactable);
 			AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
-			if (SpawnedObject)
+			if (InteractableObject && SpawnedObject)
 			{
-				return SpawnedObject->GetMass();
+				OriginalObject = InteractableObject;
+				DuplicatedObject = SpawnedObject;
+				Mass = InteractableObject->GetMass();
 			}
 		}
 	}
 
-	return 0;
+	return Mass;
 }
 
 void AMainCharacter::TryDelete()
@@ -196,7 +202,7 @@ void AMainCharacter::TryDelete()
 	Delete();
 }
 
-int32 AMainCharacter::Delete()
+float AMainCharacter::Delete()
 {
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -208,7 +214,7 @@ int32 AMainCharacter::Delete()
 		ECollisionChannel::ECC_Visibility
 	);
 
-	int32 Mass = 0;
+	float Mass = 0.0f;
 	AActor* Interactable = HitResult.GetActor();
 	if (Interactable && Interactable->Implements<UInteractableInterface>() && Interactable->GetOwner())
 	{
@@ -228,7 +234,7 @@ void AMainCharacter::TryClear()
 	Clear();
 }
 
-int32 AMainCharacter::Clear()
+float AMainCharacter::Clear()
 {
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -240,7 +246,7 @@ int32 AMainCharacter::Clear()
 		ECollisionChannel::ECC_Visibility
 	);
 
-	int32 TotalMass = 0;
+	float TotalMass = 0.0f;
 	AActor* Interactable = HitResult.GetActor();
 	if (Interactable && Interactable->Implements<UInteractableInterface>())
 	{
