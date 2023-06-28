@@ -109,7 +109,7 @@ void AMainCharacter::Look(const FInputActionValue& Value)
 
 void AMainCharacter::TryGrab()
 {
-	if (PostProcess && PostProcess->bEnabled) return;
+	if (bIsExamining) return;
 
 	if (PhysicsHandle->GrabbedComponent)
 	{
@@ -230,7 +230,7 @@ void AMainCharacter::TryDelete()
 
 float AMainCharacter::Delete()
 {
-	if (bIsExamining) return 0.0f;
+	if (bIsExamining || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0.0f;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -265,7 +265,7 @@ void AMainCharacter::TryClear()
 
 float AMainCharacter::Clear()
 {
-	if (bIsExamining) return 0.0f;
+	if (bIsExamining || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0.0f;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -303,7 +303,7 @@ float AMainCharacter::Clear()
 
 void AMainCharacter::Examine()
 {
-	if (PostProcess == nullptr) return;
+	if (PostProcess == nullptr || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return;
 
 	PostProcess->bEnabled = !PostProcess->bEnabled;
 	bIsExamining = PostProcess->bEnabled;
