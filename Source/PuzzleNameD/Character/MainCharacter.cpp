@@ -10,6 +10,7 @@
 #include "PuzzleNameD/Interfaces/InteractableInterface.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "PuzzleNameD/Objects/ObjectBase.h"
+#include "Components/PostProcessComponent.h"
 
 AMainCharacter::AMainCharacter()
 {
@@ -18,6 +19,14 @@ AMainCharacter::AMainCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(GetMesh());
 	Camera->bUsePawnControlRotation = true;
+
+	PostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
+	PostProcess->SetupAttachment(Camera);
+	PostProcess->bEnabled = false;
+	PostProcess->Settings.AutoExposureBias = -3.0f;
+	PostProcess->Settings.bOverride_AutoExposureBias = true;
+	PostProcess->Settings.SceneColorTint = FColor::Cyan;
+	PostProcess->Settings.bOverride_SceneColorTint = true;
 
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 }
@@ -31,6 +40,17 @@ void AMainCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(MainContext, 0);
+		}
+	}
+
+	TArray<AActor*> Interactables;
+	UGameplayStatics::GetAllActorsOfClass(this, AObjectBase::StaticClass(), Interactables);
+	for (AActor* Interactable : Interactables)
+	{
+		AObjectBase* InteractableObject = Cast<AObjectBase>(Interactable);
+		if (InteractableObject)
+		{
+			InteractableObjects.Emplace(InteractableObject);
 		}
 	}
 }
@@ -62,6 +82,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(DuplicateAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDuplicate);
 		EnhancedInputComponent->BindAction(DeleteAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDelete);
 		EnhancedInputComponent->BindAction(ClearAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryClear);
+		EnhancedInputComponent->BindAction(ExamineAction, ETriggerEvent::Triggered, this, &AMainCharacter::Examine);
 	}
 }
 
@@ -88,6 +109,8 @@ void AMainCharacter::Look(const FInputActionValue& Value)
 
 void AMainCharacter::TryGrab()
 {
+	if (PostProcess && PostProcess->bEnabled) return;
+
 	if (PhysicsHandle->GrabbedComponent)
 	{
 		Release();
@@ -150,6 +173,8 @@ void AMainCharacter::TryDuplicate()
 
 float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& DuplicatedObject)
 {
+	if (PostProcess && PostProcess->bEnabled) return 0.0f;
+
 	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0.0f;
 
 	FHitResult HitResult;
@@ -190,6 +215,7 @@ float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& Dupl
 				OriginalObject = InteractableObject;
 				DuplicatedObject = SpawnedObject;
 				Mass = InteractableObject->GetMass();
+				InteractableObjects.Emplace(SpawnedObject);
 			}
 		}
 	}
@@ -204,6 +230,8 @@ void AMainCharacter::TryDelete()
 
 float AMainCharacter::Delete()
 {
+	if (PostProcess && PostProcess->bEnabled) return 0.0f;
+
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
 	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
@@ -218,11 +246,12 @@ float AMainCharacter::Delete()
 	AActor* Interactable = HitResult.GetActor();
 	if (Interactable && Interactable->Implements<UInteractableInterface>() && Interactable->GetOwner())
 	{
-		AObjectBase* Object = Cast<AObjectBase>(Interactable);
-		if (Object)
+		AObjectBase* InteractableObject = Cast<AObjectBase>(Interactable);
+		if (InteractableObject)
 		{
-			Mass = Object->GetMass();
-			IInteractableInterface::Execute_OnDisappear(Object);
+			Mass = InteractableObject->GetMass();
+			InteractableObjects.Remove(InteractableObject);
+			IInteractableInterface::Execute_OnDisappear(InteractableObject);
 		}
 	}
 
@@ -236,6 +265,8 @@ void AMainCharacter::TryClear()
 
 float AMainCharacter::Clear()
 {
+	if (PostProcess && PostProcess->bEnabled) return 0.0f;
+
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
 	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
@@ -260,6 +291,7 @@ float AMainCharacter::Clear()
 				if (TargetObject)
 				{
 					TotalMass += TargetObject->GetMass();
+					InteractableObjects.Remove(TargetObject);
 					IInteractableInterface::Execute_OnDisappear(TargetObject);
 				}
 			}
@@ -267,4 +299,39 @@ float AMainCharacter::Clear()
 	}
 
 	return TotalMass;
+}
+
+void AMainCharacter::Examine()
+{
+	if (PostProcess == nullptr) return;
+
+	PostProcess->bEnabled = !PostProcess->bEnabled;
+	if (PostProcess->bEnabled)
+	{
+		for (AObjectBase* InteractableObject : InteractableObjects)
+		{
+			if (InteractableObject && InteractableObject->IsDuplicatable())
+			{
+				UStaticMeshComponent* TargetMesh = InteractableObject->GetMesh();
+				if (TargetMesh)
+				{
+					TargetMesh->SetScalarParameterValueOnMaterials(FName("EmissiveMultiply"), 100.f);
+				}
+			}
+		}
+	}
+	else
+	{
+		for (AObjectBase* InteractableObject : InteractableObjects)
+		{
+			if (InteractableObject)
+			{
+				UStaticMeshComponent* TargetMesh = InteractableObject->GetMesh();
+				if (TargetMesh)
+				{
+					TargetMesh->SetScalarParameterValueOnMaterials(FName("EmissiveMultiply"), 0.f);
+				}
+			}
+		}
+	}
 }

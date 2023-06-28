@@ -57,7 +57,11 @@ private:
 	UPROPERTY()
 	TArray<AObjectBase*> DuplicatedObjects;
 
+	bool bIsDuplicatable = true;
+
 public:
+	FORCEINLINE UStaticMeshComponent* GetMesh() const { return Mesh; }
 	FORCEINLINE float GetMass() const { return Mass; }
 	FORCEINLINE void SetMass(float InMass) { Mass = InMass; }
+	FORCEINLINE bool IsDuplicatable() const { return bIsDuplicatable; }
 };

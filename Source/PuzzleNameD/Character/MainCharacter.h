@@ -44,6 +44,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* ClearAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* ExamineAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void TryGrab();
@@ -56,10 +59,14 @@ protected:
 	float Delete();
 	virtual void TryClear();
 	float Clear();
+	void Examine();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UPostProcessComponent* PostProcess;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UPhysicsHandleComponent* PhysicsHandle;
@@ -71,6 +78,9 @@ private:
 	float DuplicateLength = 150.f;
 
 	float Length;
+
+	UPROPERTY()
+	TArray<AObjectBase*> InteractableObjects;
 
 public:
 
