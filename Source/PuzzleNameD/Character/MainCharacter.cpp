@@ -173,9 +173,7 @@ void AMainCharacter::TryDuplicate()
 
 float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& DuplicatedObject)
 {
-	if (PostProcess && PostProcess->bEnabled) return 0.0f;
-
-	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0.0f;
+	if (bIsExamining || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent) return 0.0f;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -191,6 +189,9 @@ float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& Dupl
 	AActor* Interactable = HitResult.GetActor();
 	if (Interactable && Interactable->Implements<UInteractableInterface>())
 	{
+		AObjectBase* InteractableObject = Cast<AObjectBase>(Interactable);
+		if (InteractableObject == nullptr || !InteractableObject->IsDuplicatable()) return 0.0f;
+
 		Length = DuplicateLength;
 		FActorSpawnParameters SpawnParams;
 		if (Interactable->GetOwner())
@@ -207,10 +208,9 @@ float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& Dupl
 			SpawnedActor->SetActorEnableCollision(false);
 			IInteractableInterface::Execute_OnPreview(SpawnedActor);
 			UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
-			Grab(TargetComponent);
-			AObjectBase* InteractableObject = Cast<AObjectBase>(Interactable);
+			Grab(TargetComponent);;
 			AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
-			if (InteractableObject && SpawnedObject)
+			if (SpawnedObject)
 			{
 				OriginalObject = InteractableObject;
 				DuplicatedObject = SpawnedObject;
@@ -230,7 +230,7 @@ void AMainCharacter::TryDelete()
 
 float AMainCharacter::Delete()
 {
-	if (PostProcess && PostProcess->bEnabled) return 0.0f;
+	if (bIsExamining) return 0.0f;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -265,7 +265,7 @@ void AMainCharacter::TryClear()
 
 float AMainCharacter::Clear()
 {
-	if (PostProcess && PostProcess->bEnabled) return 0.0f;
+	if (bIsExamining) return 0.0f;
 
 	FHitResult HitResult;
 	FVector Start = Camera->GetComponentLocation();
@@ -306,7 +306,8 @@ void AMainCharacter::Examine()
 	if (PostProcess == nullptr) return;
 
 	PostProcess->bEnabled = !PostProcess->bEnabled;
-	if (PostProcess->bEnabled)
+	bIsExamining = PostProcess->bEnabled;
+	if (bIsExamining)
 	{
 		for (AObjectBase* InteractableObject : InteractableObjects)
 		{

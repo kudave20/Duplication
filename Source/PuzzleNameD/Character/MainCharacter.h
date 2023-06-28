@@ -61,6 +61,8 @@ protected:
 	float Clear();
 	void Examine();
 
+	bool bIsExamining;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* Camera;
