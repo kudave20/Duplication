@@ -37,7 +37,7 @@ void AClipboardCharacter::Erase()
 {
 	if (CurrentKeptObject == nullptr) return;
 
-	TArray<AActor*> TargetActors;
+	/*TArray<AActor*> TargetActors;
 	UGameplayStatics::GetAllActorsOfClass(this, CurrentKeptObject->GetClass(), TargetActors);
 	for (AActor* TargetActor : TargetActors)
 	{
@@ -49,7 +49,7 @@ void AClipboardCharacter::Erase()
 				IInteractableInterface::Execute_OnDisappear(TargetObject);
 			}
 		}
-	}
+	}*/
 	if (!bIsExamining)
 	{
 		DuplicatedCount = 0;
