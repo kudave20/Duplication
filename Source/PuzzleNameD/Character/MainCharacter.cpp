@@ -25,8 +25,20 @@ AMainCharacter::AMainCharacter()
 	PostProcess->bEnabled = false;
 	PostProcess->Settings.AutoExposureBias = -3.0f;
 	PostProcess->Settings.bOverride_AutoExposureBias = true;
-	PostProcess->Settings.SceneColorTint = FColor::Cyan;
-	PostProcess->Settings.bOverride_SceneColorTint = true;
+	PostProcess->Settings.WhiteTemp = 4957.0f;
+	PostProcess->Settings.bOverride_WhiteTemp = true;
+	PostProcess->Settings.WhiteTint = 0.43f;
+	PostProcess->Settings.bOverride_WhiteTint = true;
+	PostProcess->Settings.ColorSaturation = FVector4(0.56f, 0.56f, 0.56f, 1.0f);
+	PostProcess->Settings.bOverride_ColorSaturation = true;
+	PostProcess->Settings.ColorContrast = FVector4(1.34f, 1.34f, 1.34f, 1.0f);
+	PostProcess->Settings.bOverride_ColorContrast = true;
+	PostProcess->Settings.ColorGamma = FVector4(1.5f, 1.5f, 1.5f, 1.0f);
+	PostProcess->Settings.bOverride_ColorGamma = true;
+	PostProcess->Settings.VignetteIntensity = 1.3f;
+	PostProcess->Settings.bOverride_VignetteIntensity = true;
+	PostProcess->Settings.FilmGrainIntensity = 0.5f;
+	PostProcess->Settings.bOverride_FilmGrainIntensity = true;
 
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 }
@@ -316,7 +328,7 @@ void AMainCharacter::Examine()
 				UStaticMeshComponent* TargetMesh = InteractableObject->GetMesh();
 				if (TargetMesh)
 				{
-					TargetMesh->SetScalarParameterValueOnMaterials(FName("EmissiveMultiply"), 100.f);
+					TargetMesh->SetScalarParameterValueOnMaterials(FName("EmissiveMultiply"), 10.f);
 				}
 			}
 		}
