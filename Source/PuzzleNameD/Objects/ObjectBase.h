@@ -59,10 +59,13 @@ private:
 
 	bool bIsDuplicatable = true;
 
+	FTimerHandle DuplicateTimer;
+
 public:
 	FORCEINLINE UStaticMeshComponent* GetMesh() const { return Mesh; }
 	FORCEINLINE float GetMass() const { return Mass; }
 	FORCEINLINE void SetMass(float InMass) { Mass = InMass; }
 	FORCEINLINE bool IsDuplicatable() const { return bIsDuplicatable; }
 	FORCEINLINE void BecomeDuplicatable(bool bDuplicatable) { bIsDuplicatable = bDuplicatable; }
+	FORCEINLINE FTimerHandle& GetDuplicateTimer() { return DuplicateTimer; }
 };

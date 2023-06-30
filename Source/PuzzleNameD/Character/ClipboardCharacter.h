@@ -36,5 +36,5 @@ private:
 	int32 ClipboardCount;
 
 	UPROPERTY()
-	AObjectBase* CurrentKeptObject;
+	AActor* CurrentKeptObject;
 };
