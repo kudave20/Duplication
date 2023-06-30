@@ -19,9 +19,13 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* PasteAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* EraseAction;
 
 	virtual void TryDuplicate() override;
+	void Paste();
 	void Erase();
 
 private:
@@ -29,7 +33,7 @@ private:
 	int32 AbilityCount;
 
 	UPROPERTY(VisibleAnywhere)
-	int32 DuplicatedCount;
+	int32 ClipboardCount;
 
 	UPROPERTY()
 	AObjectBase* CurrentKeptObject;

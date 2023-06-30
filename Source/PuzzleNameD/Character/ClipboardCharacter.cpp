@@ -5,6 +5,8 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PuzzleNameD/Objects/ObjectBase.h"
+#include "Camera/CameraComponent.h"
+#include "Components/PostProcessComponent.h"
 
 void AClipboardCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -12,30 +14,64 @@ void AClipboardCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
+		EnhancedInputComponent->BindAction(PasteAction, ETriggerEvent::Triggered, this, &AClipboardCharacter::Paste);
 		EnhancedInputComponent->BindAction(EraseAction, ETriggerEvent::Triggered, this, &AClipboardCharacter::Erase);
 	}
 }
 
 void AClipboardCharacter::TryDuplicate()
 {
-	if (DuplicatedCount >= AbilityCount) return;
+	if (ClipboardCount > 0 || PostProcess->bEnabled) return;
 
-	AObjectBase* FirstObject = nullptr;
-	AObjectBase* SecondObject = nullptr;
-	float TargetMass = Super::Duplicate(FirstObject, SecondObject);
-	if (TargetMass <= 0.0f) return;
+	FHitResult HitResult;
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + Camera->GetComponentRotation().Vector() * ArmLength;
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_Visibility
+	);
 
-	DuplicatedCount++;
-	CurrentKeptObject = FirstObject;
-	if (SecondObject)
+	AObjectBase* TargetObject = Cast<AObjectBase>(HitResult.GetActor());
+	if (TargetObject && TargetObject->IsDuplicatable())
 	{
-		SecondObject->BecomeDuplicatable(false);
+		CurrentKeptObject = TargetObject;
+		ClipboardCount = AbilityCount;
+	}
+}
+
+void AClipboardCharacter::Paste()
+{
+	if (CurrentKeptObject == nullptr || ClipboardCount == 0 || PostProcess->bEnabled) return;
+	
+	Length = DuplicateLength;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = CurrentKeptObject;
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(
+		CurrentKeptObject->GetClass(), 
+		Camera->GetComponentLocation() + Camera->GetComponentRotation().Vector() * DuplicateLength, 
+		CurrentKeptObject->GetActorRotation(), 
+		SpawnParams);
+	if (SpawnedActor)
+	{
+		SpawnedActor->SetActorEnableCollision(false);
+		IInteractableInterface::Execute_OnPreview(SpawnedActor);
+		UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
+		Grab(TargetComponent);
+		AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
+		if (SpawnedObject)
+		{
+			InteractableObjects.Emplace(SpawnedObject);
+			SpawnedObject->BecomeDuplicatable(false);
+			ClipboardCount--;
+		}
 	}
 }
 
 void AClipboardCharacter::Erase()
 {
-	if (CurrentKeptObject == nullptr) return;
+	if (CurrentKeptObject == nullptr || PostProcess->bEnabled) return;
 
 	/*TArray<AActor*> TargetActors;
 	UGameplayStatics::GetAllActorsOfClass(this, CurrentKeptObject->GetClass(), TargetActors);
@@ -50,8 +86,5 @@ void AClipboardCharacter::Erase()
 			}
 		}
 	}*/
-	if (!bIsExamining)
-	{
-		DuplicatedCount = 0;
-	}
+	ClipboardCount = 0;
 }

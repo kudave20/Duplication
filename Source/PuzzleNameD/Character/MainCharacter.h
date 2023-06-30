@@ -20,6 +20,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(VisibleAnywhere, Category = Camera)
+	class UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UPostProcessComponent* PostProcess;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UPhysicsHandleComponent* PhysicsHandle;
+
 	UPROPERTY(EditAnywhere, Category = Input)
 	class UInputMappingContext* MainContext;
 
@@ -61,24 +70,12 @@ protected:
 	float Clear();
 	void Examine();
 
-	bool bIsExamining;
-
-private:
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class UCameraComponent* Camera;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class UPostProcessComponent* PostProcess;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class UPhysicsHandleComponent* PhysicsHandle;
-
 	UPROPERTY(EditAnywhere, Category = "Length")
 	float ArmLength = 250.f;
 
 	UPROPERTY(EditAnywhere, Category = "Length")
-	float DuplicateLength = 150.f;
-
+	float DuplicateLength = 150.f; 
+	
 	float Length;
 
 	UPROPERTY()
