@@ -81,6 +81,9 @@ protected:
 	UPROPERTY()
 	TArray<AObjectBase*> InteractableObjects;
 
+private:
+	float YawWhenGrabbed;
+
 public:
 
 };

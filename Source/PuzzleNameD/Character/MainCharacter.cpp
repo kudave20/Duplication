@@ -75,7 +75,9 @@ void AMainCharacter::Tick(float DeltaTime)
 	{
 		FVector Start = Camera->GetComponentLocation();
 		FVector End = Start + Camera->GetComponentRotation().Vector() * Length;
-		PhysicsHandle->SetTargetLocation(End);
+		FRotator Rotation = PhysicsHandle->GrabbedComponent->GetComponentRotation();
+		Rotation.Yaw = Camera->GetComponentRotation().Yaw - YawWhenGrabbed;
+		PhysicsHandle->SetTargetLocationAndRotation(End, Rotation);
 	}
 }
 
@@ -150,6 +152,7 @@ void AMainCharacter::Grab()
 	if (Interactable && Interactable->Implements<UInteractableInterface>() && Target)
 	{
 		PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
+		YawWhenGrabbed = Camera->GetComponentRotation().Yaw;
 		Length = (Target->GetComponentLocation() - Camera->GetComponentLocation()).Size();
 	}
 }
@@ -159,6 +162,7 @@ void AMainCharacter::Grab(UPrimitiveComponent* Target)
 	if (PhysicsHandle == nullptr || Target == nullptr) return;
 
 	PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
+	YawWhenGrabbed = Camera->GetComponentRotation().Yaw;
 }
 
 void AMainCharacter::Release()
@@ -172,6 +176,7 @@ void AMainCharacter::Release()
 		IInteractableInterface::Execute_OnPlace(Component->GetOwner());
 	}
 	PhysicsHandle->ReleaseComponent();
+	YawWhenGrabbed = 0.0f;
 }
 
 void AMainCharacter::TryDuplicate()
