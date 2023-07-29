@@ -170,11 +170,15 @@ void AMainCharacter::Release()
 	if (PhysicsHandle == nullptr) return;
 
 	UPrimitiveComponent* Component = PhysicsHandle->GrabbedComponent;
-	if (Component && Component->GetOwner())
-	{
-		Component->GetOwner()->SetActorEnableCollision(true);
-		IInteractableInterface::Execute_OnPlace(Component->GetOwner());
-	}
+	if (Component == nullptr || Component->GetOwner() == nullptr) return;
+
+	TArray<AActor*> OverlappingActors;
+	Component->GetOverlappingActors(OverlappingActors);
+	if (OverlappingActors.Num() > 0) return;
+
+	Component->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
+	Component->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	IInteractableInterface::Execute_OnPlace(Component->GetOwner());
 	PhysicsHandle->ReleaseComponent();
 	YawWhenGrabbed = 0.0f;
 }
@@ -223,17 +227,21 @@ float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& Dupl
 			SpawnParams);
 		if (SpawnedActor)
 		{
-			SpawnedActor->SetActorEnableCollision(false);
 			IInteractableInterface::Execute_OnPreview(SpawnedActor);
 			UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
-			Grab(TargetComponent);
-			AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
-			if (SpawnedObject)
+			if (TargetComponent)
 			{
-				OriginalObject = InteractableObject;
-				DuplicatedObject = SpawnedObject;
-				Mass = InteractableObject->GetMass();
-				InteractableObjects.Emplace(SpawnedObject);
+				TargetComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+				TargetComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+				Grab(TargetComponent);
+				AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
+				if (SpawnedObject)
+				{
+					OriginalObject = InteractableObject;
+					DuplicatedObject = SpawnedObject;
+					Mass = InteractableObject->GetMass();
+					InteractableObjects.Emplace(SpawnedObject);
+				}
 			}
 		}
 	}

@@ -10,6 +10,8 @@ AObjectBase::AObjectBase()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
 	Mesh->SetSimulatePhysics(true);
+	Mesh->SetMassOverrideInKg(NAME_None, 1000.0f);
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	DisappearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DisappearTimeline"));
 }
@@ -17,7 +19,6 @@ AObjectBase::AObjectBase()
 void AObjectBase::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void AObjectBase::Tick(float DeltaTime)

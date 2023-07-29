@@ -27,6 +27,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* Mesh;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UBoxComponent* AreaBox;
+
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* PreviewMaterial;
 
@@ -39,7 +42,7 @@ private:
 	/*
 	* Disappear Effect
 	*/
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTimelineComponent* DisappearTimeline;
 	FOnTimelineFloat DisappearTrack;
 	FOnTimelineEvent DisappearTimelineFinished;
