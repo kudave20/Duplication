@@ -154,6 +154,10 @@ void AMainCharacter::Grab()
 		PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
 		YawWhenGrabbed = Camera->GetComponentRotation().Yaw;
 		Length = (Target->GetComponentLocation() - Camera->GetComponentLocation()).Size();
+		if (BasedMovement.MovementBase == PhysicsHandle->GrabbedComponent)
+		{
+			Release();
+		}
 	}
 }
 
@@ -173,7 +177,8 @@ void AMainCharacter::Release()
 	if (Component == nullptr || Component->GetOwner() == nullptr) return;
 
 	TArray<AActor*> OverlappingActors;
-	Component->GetOverlappingActors(OverlappingActors);
+	Component->GetOverlappingActors(OverlappingActors, AObjectBase::StaticClass());
+	Component->GetOverlappingActors(OverlappingActors, AMainCharacter::StaticClass());
 	if (OverlappingActors.Num() > 0) return;
 
 	Component->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
