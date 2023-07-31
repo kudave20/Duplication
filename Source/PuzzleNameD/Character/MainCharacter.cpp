@@ -11,13 +11,18 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "PuzzleNameD/Objects/ObjectBase.h"
 #include "Components/PostProcessComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "PuzzleNameD/PuzzleNameD.h"
 
 AMainCharacter::AMainCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Interactable, ECollisionResponse::ECR_Block);
+
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(GetMesh());
+	Camera->SetupAttachment(GetMesh(), FName("head"));
 	Camera->bUsePawnControlRotation = true;
 
 	PostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
@@ -37,6 +42,11 @@ AMainCharacter::AMainCharacter()
 	PostProcess->Settings.bOverride_VignetteIntensity = true;
 	PostProcess->Settings.FilmGrainIntensity = 0.5f;
 	PostProcess->Settings.bOverride_FilmGrainIntensity = true;
+
+	GetCharacterMovement()->GravityScale = 2.0f;
+	GetCharacterMovement()->BrakingFrictionFactor = 0.5f;
+	GetCharacterMovement()->Mass = 300.0f;
+	GetCharacterMovement()->JumpZVelocity = 630.0f;
 
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 }
@@ -181,8 +191,11 @@ void AMainCharacter::Release()
 	Component->GetOverlappingActors(OverlappingActors, AMainCharacter::StaticClass());
 	if (OverlappingActors.Num() > 0) return;
 
-	Component->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
-	Component->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	AObjectBase* ObjectBase = Cast<AObjectBase>(Component->GetOwner());
+	if (ObjectBase)
+	{
+		ObjectBase->SetCollisionResponse(ECollisionResponse::ECR_Block);
+	}
 	IInteractableInterface::Execute_OnPlace(Component->GetOwner());
 	PhysicsHandle->ReleaseComponent();
 	YawWhenGrabbed = 0.0f;
@@ -236,12 +249,11 @@ float AMainCharacter::Duplicate(AObjectBase*& OriginalObject, AObjectBase*& Dupl
 			UPrimitiveComponent* TargetComponent = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
 			if (TargetComponent)
 			{
-				TargetComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-				TargetComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 				Grab(TargetComponent);
 				AObjectBase* SpawnedObject = Cast<AObjectBase>(SpawnedActor);
 				if (SpawnedObject)
 				{
+					SpawnedObject->SetCollisionResponse(ECollisionResponse::ECR_Overlap);
 					OriginalObject = InteractableObject;
 					DuplicatedObject = SpawnedObject;
 					Mass = InteractableObject->GetMass();

@@ -16,6 +16,7 @@ class PUZZLENAMED_API AObjectBase : public AActor, public IInteractableInterface
 public:	
 	AObjectBase();
 	virtual void Tick(float DeltaTime) override;
+	virtual void SetCollisionResponse(ECollisionResponse NewResponse);
 
 protected:
 	virtual void BeginPlay() override;
@@ -23,18 +24,18 @@ protected:
 	virtual void OnPlace_Implementation() override;
 	virtual void OnDisappear_Implementation() override;
 
+	UPROPERTY(EditAnywhere, Category = "Material")
+	TArray<UMaterialInstance*> PreviewMaterials;
+
+	UPROPERTY(EditAnywhere, Category = "Material")
+	TArray<UMaterialInstance*> OriginalMaterials;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UBoxComponent* AreaBox;
-
-	UPROPERTY(EditAnywhere, Category = "Material")
-	UMaterialInstance* PreviewMaterial;
-
-	UPROPERTY(EditAnywhere, Category = "Material")
-	UMaterialInstance* OriginalMaterial;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	float Mass;

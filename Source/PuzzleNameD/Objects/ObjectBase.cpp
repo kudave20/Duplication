@@ -2,6 +2,7 @@
 
 
 #include "ObjectBase.h"
+#include "PuzzleNameD/PuzzleNameD.h"
 
 AObjectBase::AObjectBase()
 {
@@ -11,7 +12,9 @@ AObjectBase::AObjectBase()
 	SetRootComponent(Mesh);
 	Mesh->SetSimulatePhysics(true);
 	Mesh->SetMassOverrideInKg(NAME_None, 1000.0f);
+	Mesh->SetLinearDamping(1.0f);
 	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	Mesh->SetCollisionResponseToChannel(ECC_Interactable, ECollisionResponse::ECR_Block);
 
 	DisappearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DisappearTimeline"));
 }
@@ -27,13 +30,22 @@ void AObjectBase::Tick(float DeltaTime)
 
 }
 
+void AObjectBase::SetCollisionResponse(ECollisionResponse NewResponse)
+{
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, NewResponse);
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, NewResponse);
+}
+
 void AObjectBase::OnPreview_Implementation()
 {
 	IInteractableInterface::OnPreview_Implementation();
 
 	if (Mesh)
 	{
-		Mesh->SetMaterial(0, PreviewMaterial);
+		for (int32 Idx = 0; Idx < PreviewMaterials.Num(); Idx++)
+		{
+			Mesh->SetMaterial(Idx, PreviewMaterials[Idx]);
+		}
 	}
 }
 
@@ -43,7 +55,10 @@ void AObjectBase::OnPlace_Implementation()
 
 	if (Mesh)
 	{
-		Mesh->SetMaterial(0, OriginalMaterial);
+		for (int32 Idx = 0; Idx < OriginalMaterials.Num(); Idx++)
+		{
+			Mesh->SetMaterial(Idx, OriginalMaterials[Idx]);
+		}
 	}
 }
 
