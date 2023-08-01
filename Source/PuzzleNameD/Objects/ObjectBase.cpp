@@ -32,8 +32,10 @@ void AObjectBase::Tick(float DeltaTime)
 
 void AObjectBase::SetCollisionResponse(ECollisionResponse NewResponse)
 {
+	Mesh->SetCollisionResponseToAllChannels(NewResponse);
+	/*Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, NewResponse);
 	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, NewResponse);
-	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, NewResponse);
+	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, NewResponse);*/
 }
 
 void AObjectBase::OnPreview_Implementation()

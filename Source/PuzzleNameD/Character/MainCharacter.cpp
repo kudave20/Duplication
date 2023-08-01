@@ -12,8 +12,10 @@
 #include "PuzzleNameD/Objects/ObjectBase.h"
 #include "Components/PostProcessComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "PuzzleNameD/Interfaces/UnGrabbableInterface.h"
 #include "PuzzleNameD/PuzzleNameD.h"
+#include "Components/CapsuleComponent.h"
+//#include "Kismet/KismetMathLibrary.h"
 
 AMainCharacter::AMainCharacter()
 {
@@ -44,7 +46,7 @@ AMainCharacter::AMainCharacter()
 	PostProcess->Settings.bOverride_FilmGrainIntensity = true;
 
 	GetCharacterMovement()->GravityScale = 2.0f;
-	GetCharacterMovement()->BrakingFrictionFactor = 0.5f;
+	GetCharacterMovement()->BrakingFrictionFactor = 0.2f;
 	GetCharacterMovement()->Mass = 300.0f;
 	GetCharacterMovement()->JumpZVelocity = 630.0f;
 
@@ -85,6 +87,7 @@ void AMainCharacter::Tick(float DeltaTime)
 	{
 		FVector Start = Camera->GetComponentLocation();
 		FVector End = Start + Camera->GetComponentRotation().Vector() * Length;
+		//PhysicsHandle->SetTargetLocation(End);
 		FRotator Rotation = PhysicsHandle->GrabbedComponent->GetComponentRotation();
 		Rotation.Yaw = Camera->GetComponentRotation().Yaw - YawWhenGrabbed;
 		PhysicsHandle->SetTargetLocationAndRotation(End, Rotation);
@@ -105,6 +108,8 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(DeleteAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryDelete);
 		EnhancedInputComponent->BindAction(ClearAction, ETriggerEvent::Triggered, this, &AMainCharacter::TryClear);
 		EnhancedInputComponent->BindAction(ExamineAction, ETriggerEvent::Triggered, this, &AMainCharacter::Examine);
+		EnhancedInputComponent->BindAction(SnapUpAction, ETriggerEvent::Triggered, this, &AMainCharacter::SnapUp);
+		EnhancedInputComponent->BindAction(SnapDownAction, ETriggerEvent::Triggered, this, &AMainCharacter::SnapDown);
 	}
 }
 
@@ -159,7 +164,7 @@ void AMainCharacter::Grab()
 
 	AActor* Interactable = HitResult.GetActor();
 	UPrimitiveComponent* Target = HitResult.GetComponent();
-	if (Interactable && Interactable->Implements<UInteractableInterface>() && Target)
+	if (Interactable && Interactable->Implements<UInteractableInterface>() && !Interactable->Implements<UUnGrabbableInterface>() && Target)
 	{
 		PhysicsHandle->GrabComponentAtLocationWithRotation(Target, NAME_None, Target->GetComponentLocation(), FRotator::ZeroRotator);
 		YawWhenGrabbed = Camera->GetComponentRotation().Yaw;
@@ -378,4 +383,22 @@ void AMainCharacter::Examine()
 			}
 		}
 	}
+}
+
+void AMainCharacter::SnapUp()
+{
+	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
+
+	//FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), FRotator(0, 0, 90));
+	FRotator NewRotation = PhysicsHandle->GrabbedComponent->GetComponentRotation() + FRotator(0, 0, 90);
+	PhysicsHandle->SetTargetRotation(NewRotation);
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("%s"), *NewRotation.ToString()));
+}
+
+void AMainCharacter::SnapDown()
+{
+	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
+
+	//PhysicsHandle->SetTargetRotation(PhysicsHandle->GrabbedComponent->GetComponentRotation() + GetActorUpVector().Rotation() * -1.0f);
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("%s"), *PhysicsHandle->GrabbedComponent->GetComponentRotation().ToString()));
 }

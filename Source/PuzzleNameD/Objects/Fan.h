@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "ObjectBase.h"
+#include "PuzzleNameD/Interfaces/UnGrabbableInterface.h"
 #include "Fan.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PUZZLENAMED_API AFan : public AObjectBase
+class PUZZLENAMED_API AFan : public AObjectBase, public IUnGrabbableInterface
 {
 	GENERATED_BODY()
 
@@ -41,13 +42,33 @@ private:
 	float RangeY;
 	float RangeZ;
 
+	/*
 	UPROPERTY(EditAnywhere)
-	float DistanceBetweenLines;
+	float DistanceBetweenLines;'
+	*/
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Wind")
 	float MaxForce;
+
+	UPROPERTY(EditAnywhere, Category = "Wind")
+	float StartRadius;
+
+	UPROPERTY(EditAnywhere, Category = "Wind")
+	float Tangent;
+
+	/*
+	* Degree between two lines in a circle
+	*/
+	UPROPERTY(EditAnywhere, Category = "Wind")
+	float DegreeBetweenLines;
+
+	/*
+	* Number of lines in a row
+	*/
+	UPROPERTY(EditAnywhere, Category = "Wind")
+	int32 UnitNumberOfLines;
 
 	void Push();
 
-	bool bIsPushingCharacter;
+	//bool bIsPushingCharacter;
 };

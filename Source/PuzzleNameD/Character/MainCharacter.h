@@ -56,6 +56,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* ExamineAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* SnapUpAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* SnapDownAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void TryGrab();
@@ -69,6 +75,8 @@ protected:
 	virtual void TryClear();
 	float Clear();
 	void Examine();
+	void SnapUp();
+	void SnapDown();
 
 	UPROPERTY(EditAnywhere, Category = "Length")
 	float ArmLength = 250.f;
