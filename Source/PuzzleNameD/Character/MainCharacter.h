@@ -57,6 +57,12 @@ protected:
 	UInputAction* ExamineAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* SnapLeftAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* SnapRightAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* SnapUpAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
@@ -75,6 +81,8 @@ protected:
 	virtual void TryClear();
 	float Clear();
 	void Examine();
+	void SnapLeft();
+	void SnapRight();
 	void SnapUp();
 	void SnapDown();
 
