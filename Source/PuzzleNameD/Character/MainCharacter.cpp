@@ -431,3 +431,16 @@ void AMainCharacter::SnapDown()
 	PhysicsHandle->SetTargetRotation(NewRotation);
 	YawWhenGrabbed = Camera->GetComponentRotation().Yaw - NewRotation.Yaw;
 }
+
+void AMainCharacter::ClearAll()
+{
+	Release();
+
+	for (AObjectBase* InteractableObject : InteractableObjects)
+	{
+		if (InteractableObject && InteractableObject->GetOwner())
+		{
+			InteractableObject->Destroy();
+		}
+	}
+}
