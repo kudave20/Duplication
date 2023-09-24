@@ -93,6 +93,8 @@ void AMainCharacter::Tick(float DeltaTime)
 		FRotator Rotation;
 		PhysicsHandle->GetTargetLocationAndRotation(Location, Rotation);
 		Rotation.Yaw = Camera->GetComponentRotation().Yaw - YawWhenGrabbed;
+		Rotation.Roll = RollWhenSnapped;
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, FString::Printf(TEXT("%s"), *Rotation.ToString()));
 		PhysicsHandle->SetTargetLocationAndRotation(End, Rotation);
 	}
 }
@@ -209,6 +211,7 @@ void AMainCharacter::Release()
 	IInteractableInterface::Execute_OnPlace(Component->GetOwner());
 	PhysicsHandle->ReleaseComponent();
 	YawWhenGrabbed = 0.0f;
+	RollWhenSnapped = 0.0f;
 }
 
 void AMainCharacter::TryDuplicate()
@@ -394,7 +397,7 @@ void AMainCharacter::SnapLeft()
 {
 	if (Camera == nullptr || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
 
-	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), FRotator(0, 90, 0));
+	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), FRotator(0, -90, 0));
 	PhysicsHandle->SetTargetRotation(NewRotation);
 	YawWhenGrabbed = Camera->GetComponentRotation().Yaw - NewRotation.Yaw;
 }
@@ -403,7 +406,7 @@ void AMainCharacter::SnapRight()
 {
 	if (Camera == nullptr || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
 
-	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), FRotator(0, -90, 0));
+	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), FRotator(0, 90, 0));
 	PhysicsHandle->SetTargetRotation(NewRotation);
 	YawWhenGrabbed = Camera->GetComponentRotation().Yaw - NewRotation.Yaw;
 }
@@ -412,24 +415,32 @@ void AMainCharacter::SnapUp()
 {
 	if (Camera == nullptr || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
 
+	/*
 	FRotator UpRotation = FRotator(-90.0f, Camera->GetComponentRotation().Yaw, 0.0f);
 	FRotator RestoreRotation = FRotator(0.0f, -Camera->GetComponentRotation().Yaw, 0.0f);
 	FRotator DeltaRotation = UKismetMathLibrary::ComposeRotators(RestoreRotation, UpRotation);
 	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), DeltaRotation);
+	*/
+	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(FRotator(90, 0, 0), PhysicsHandle->GrabbedComponent->GetComponentRotation());
 	PhysicsHandle->SetTargetRotation(NewRotation);
 	YawWhenGrabbed = Camera->GetComponentRotation().Yaw - NewRotation.Yaw;
+	RollWhenSnapped = NewRotation.Roll;
 }
 
 void AMainCharacter::SnapDown()
 {
-	if (PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
-
+	if (Camera == nullptr || PhysicsHandle == nullptr || PhysicsHandle->GrabbedComponent == nullptr) return;
+	
+	/*
 	FRotator DownRotation = FRotator(90.0f, Camera->GetComponentRotation().Yaw, 0.0f);
 	FRotator RestoreRotation = FRotator(0.0f, -Camera->GetComponentRotation().Yaw, 0.0f);
 	FRotator DeltaRotation = UKismetMathLibrary::ComposeRotators(RestoreRotation, DownRotation);
 	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(PhysicsHandle->GrabbedComponent->GetComponentRotation(), DeltaRotation);
+	*/
+	FRotator NewRotation = UKismetMathLibrary::ComposeRotators(FRotator(-90, 0, 0), PhysicsHandle->GrabbedComponent->GetComponentRotation());
 	PhysicsHandle->SetTargetRotation(NewRotation);
 	YawWhenGrabbed = Camera->GetComponentRotation().Yaw - NewRotation.Yaw;
+	RollWhenSnapped = NewRotation.Roll;
 }
 
 void AMainCharacter::ClearAll()

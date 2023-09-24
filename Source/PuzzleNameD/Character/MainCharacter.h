@@ -100,6 +100,7 @@ protected:
 
 private:
 	float YawWhenGrabbed;
+	float RollWhenSnapped;
 
 public:
 

@@ -15,6 +15,7 @@ AObjectBase::AObjectBase()
 	Mesh->SetLinearDamping(1.0f);
 	Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	Mesh->SetCollisionResponseToChannel(ECC_Interactable, ECollisionResponse::ECR_Block);
+	//Mesh->BodyInstance.bLockXRotation = true;
 
 	DisappearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DisappearTimeline"));
 }
