@@ -166,7 +166,7 @@ void AMainCharacter::Grab()
 		HitResult,
 		Start,
 		End,
-		ECollisionChannel::ECC_Visibility
+		ECC_Visibility
 	);
 
 	AActor* Interactable = HitResult.GetActor();
@@ -207,13 +207,13 @@ void AMainCharacter::Release()
 
 	TArray<AActor*> OverlappingActors;
 	Component->GetOverlappingActors(OverlappingActors, AObjectBase::StaticClass());
-	Component->GetOverlappingActors(OverlappingActors, AMainCharacter::StaticClass());
+	Component->GetOverlappingActors(OverlappingActors, StaticClass());
 	if (OverlappingActors.Num() > 0) return;
 
 	IInteractableInterface* GrabbedActor = Cast<IInteractableInterface>(Component->GetOwner());
 	if (GrabbedActor)
 	{
-		GrabbedActor->SetCollisionResponse(ECollisionResponse::ECR_Block);
+		GrabbedActor->SetCollisionResponse(ECR_Block);
 		GrabbedActor->OnPlace();
 		GrabbedActor->SetIsGrabbed(false);
 	}
@@ -238,7 +238,7 @@ void AMainCharacter::Duplicate()
 		HitResult,
 		Start,
 		End,
-		ECollisionChannel::ECC_Visibility
+		ECC_Visibility
 	);
 
 	AActor* Interactable = HitResult.GetActor();
@@ -269,7 +269,7 @@ void AMainCharacter::Duplicate()
 			if (TargetComponent)
 			{
 				Grab(TargetComponent);
-				SpawnedObject->SetCollisionResponse(ECollisionResponse::ECR_Overlap);
+				SpawnedObject->SetCollisionResponse(ECR_Overlap);
 				InteractableObjects.Emplace(SpawnedObject);
 			}
 		}
@@ -292,7 +292,7 @@ void AMainCharacter::Delete()
 		HitResult,
 		Start,
 		End,
-		ECollisionChannel::ECC_Visibility
+		ECC_Visibility
 	);
 
 	AActor* Interactable = HitResult.GetActor();
@@ -323,7 +323,7 @@ void AMainCharacter::Clear()
 		HitResult,
 		Start,
 		End,
-		ECollisionChannel::ECC_Visibility
+		ECC_Visibility
 	);
 
 	AActor* Interactable = HitResult.GetActor();

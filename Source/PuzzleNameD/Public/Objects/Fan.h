@@ -7,6 +7,8 @@
 #include "Interfaces/UnGrabbableInterface.h"
 #include "Fan.generated.h"
 
+class UBoxComponent;
+
 /**
  * 
  */
@@ -30,7 +32,7 @@ private:
 	UStaticMeshComponent* Blade;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class UBoxComponent* Range;
+	UBoxComponent* Range;
 
 	UPROPERTY(EditAnywhere, Category = "Material")
 	UMaterialInstance* BladePreviewMaterial;

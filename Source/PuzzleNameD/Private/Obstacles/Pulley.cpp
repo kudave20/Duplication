@@ -3,7 +3,9 @@
 
 #include "Obstacles/Pulley.h"
 #include "CableComponent.h"
-#include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "Interfaces/InteractableInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "PuzzleNameD/PuzzleNameD.h"
 
 APulley::APulley()
 {
@@ -22,9 +24,6 @@ APulley::APulley()
 
 	LeftPlate = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftPlate"));
 	LeftPlate->SetupAttachment(RootComponent);
-	LeftPlate->SetSimulatePhysics(true);
-	LeftPlate->BodyInstance.bOverrideMass = true;
-	LeftPlate->BodyInstance.SetMassOverride(5000.f);
 	LeftPlate->BodyInstance.bLockXTranslation = true;
 	LeftPlate->BodyInstance.bLockYTranslation = true;
 	LeftPlate->BodyInstance.bLockZTranslation = false;
@@ -34,9 +33,6 @@ APulley::APulley()
 
 	RightPlate = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightPlate"));
 	RightPlate->SetupAttachment(RootComponent);
-	RightPlate->SetSimulatePhysics(true);
-	RightPlate->BodyInstance.bOverrideMass = true;
-	RightPlate->BodyInstance.SetMassOverride(5000.f);
 	RightPlate->BodyInstance.bLockXTranslation = true;
 	RightPlate->BodyInstance.bLockYTranslation = true;
 	RightPlate->BodyInstance.bLockZTranslation = false;
@@ -62,150 +58,153 @@ APulley::APulley()
 	CenterCable->CableLength = 1.f;
 	CenterCable->EndLocation = FVector::UpVector * 30.f;
 
-	LeftJoint = CreateDefaultSubobject<USceneComponent>(TEXT("LeftJoint"));
-	LeftJoint->SetupAttachment(LeftWheel);
-
-	RightJoint = CreateDefaultSubobject<USceneComponent>(TEXT("RightJoint"));
-	RightJoint->SetupAttachment(RightWheel);
-
-	LeftConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("LeftConstraint"));
-	LeftConstraint->SetupAttachment(RootComponent);
-	LeftConstraint->ComponentName1.ComponentName = FName("LeftJoint");
-	LeftConstraint->ComponentName2.ComponentName = FName("LeftPlate");
-	LeftConstraint->SetDisableCollision(true);
-	LeftConstraint->SetLinearZLimit(LCM_Free, 0.f);
-	LeftConstraint->SetAngularSwing1Limit(ACM_Locked, 0.f);
-	LeftConstraint->SetAngularSwing2Limit(ACM_Locked, 0.f);
-	LeftConstraint->SetAngularTwistLimit(ACM_Locked, 0.f);
-	LeftConstraint->SetLinearVelocityTarget(FVector::ZeroVector);
-
-	RightConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("RightConstraint"));
-	RightConstraint->SetupAttachment(RootComponent);
-	RightConstraint->ComponentName1.ComponentName = FName("RightJoint");
-	RightConstraint->ComponentName2.ComponentName = FName("RightPlate");
-	RightConstraint->SetDisableCollision(true);
-	RightConstraint->SetLinearZLimit(LCM_Free, 0.f);
-	RightConstraint->SetAngularSwing1Limit(ACM_Locked, 0.f);
-	RightConstraint->SetAngularSwing2Limit(ACM_Locked, 0.f);
-	RightConstraint->SetAngularTwistLimit(ACM_Locked, 0.f);
-	RightConstraint->SetLinearVelocityTarget(FVector::ZeroVector);
-
-	LeftElevateTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("LeftElevateTimeline"));
-	RightElevateTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("RightElevateTimeline"));
+	ElevateTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ElevateTimeline"));
 }
 
 void APulley::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (LeftPlate == nullptr || RightPlate == nullptr || LeftConstraint == nullptr || RightConstraint == nullptr) return;
-	
-	LeftPlateOriginZ = LeftPlate->GetComponentLocation().Z;
-	RightPlateOriginZ = RightPlate->GetComponentLocation().Z;
-	
-	LeftConstraint->SetLinearPositionDrive(false, false, true);
-	LeftConstraint->SetLinearVelocityDrive(false, false, true);
-	LeftConstraint->SetLinearDriveParams(3000.f, 50.f, 0.f);
-	LeftConstraint->SetLinearPositionTarget(FVector::ZeroVector);
-	LeftConstraint->SetLinearVelocityTarget(FVector::ZeroVector);
-	RightConstraint->SetLinearPositionDrive(false, false, true);
-	RightConstraint->SetLinearVelocityDrive(false, false, true);
-	RightConstraint->SetLinearDriveParams(3000.f, 50.f, 0.f);
-	RightConstraint->SetLinearPositionTarget(FVector::ZeroVector);
-	RightConstraint->SetLinearVelocityTarget(FVector::ZeroVector);
-	LeftPlate->WakeRigidBody();
-	RightPlate->WakeRigidBody();
+	if (LeftPlate)
+	{
+		LeftPlateOriginLocation = LeftPlate->GetComponentLocation();
+		LeftPlateHighestLocation = LeftPlateOriginLocation + FVector::UpVector * RopeThreshold * 0.5f;
+		LeftPlateLowestLocation = LeftPlateOriginLocation - FVector::UpVector * RopeThreshold * 0.5f;
+	}
+	if (RightPlate)
+	{
+		RightPlateOriginLocation = RightPlate->GetComponentLocation();
+		RightPlateHighestLocation = RightPlateOriginLocation + FVector::UpVector * RopeThreshold * 0.5f;
+		RightPlateLowestLocation = RightPlateOriginLocation - FVector::UpVector * RopeThreshold * 0.5f;
+	}
 }
 
 void APulley::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	MovePlate();
+	
+	CalculateMass();
+	MovePlate(DeltaTime);
 }
 
-void APulley::MovePlate()
+void APulley::CalculateMass()
 {
-	if (LeftConstraint == nullptr || RightConstraint == nullptr || LeftPlate == nullptr || RightPlate == nullptr) return;
+	if (LeftPlate == nullptr || RightPlate == nullptr) return;
 
-	if (PreviousLeftLinearForceZ > PreviousRightLinearForceZ + 2000.f && !bIsLeftHeavy && LeftPlate->GetComponentLocation().Z > LeftPlateOriginZ + 5.f)
+	UWorld* World = GetWorld();
+	if (World == nullptr) return;
+
+	LeftTotalMass = 0.f;
+	RightTotalMass = 0.f;
+
+	TArray<IInteractableInterface*> LeftDetectedObjects;
+	TArray<IInteractableInterface*> RightDetectedObjects;
+
+	for (int32 RowCount = 0; RowCount < NumberOfLines; ++RowCount)
 	{
-		StartElevateRightPlate();
-		LeftPlate->WakeRigidBody();
-		RightPlate->WakeRigidBody();
+		for (int32 ColCount = 0; ColCount < NumberOfLines; ++ColCount)
+		{
+			FHitResult LeftHitResult;
+			float UnitLength = Width / (NumberOfLines - 1);
+			FVector XAxisVector = FVector::ForwardVector * UnitLength * (ColCount - (NumberOfLines - 1) * 0.5f);
+			FVector YAxisVector = FVector::RightVector * UnitLength * (RowCount - (NumberOfLines - 1) * 0.5f);
+			FVector Start = LeftPlate->GetComponentLocation() + XAxisVector + YAxisVector;
+			FVector End = Start + FVector::UpVector * TraceLength;
+			
+			TArray<AActor*> IgnoredActors;
+			UKismetSystemLibrary::LineTraceSingle(this, Start, End, UEngineTypes::ConvertToTraceType(ECC_Interactable), false, IgnoredActors, EDrawDebugTrace::ForOneFrame, LeftHitResult, true);
+
+			//World->LineTraceSingleByChannel(LeftHitResult, Start, End, ECC_Interactable);
+			
+			IInteractableInterface* Object = Cast<IInteractableInterface>(LeftHitResult.GetActor());
+			if (Object && !Object->IsGrabbed() && !LeftDetectedObjects.Contains(Object))
+			{
+				LeftDetectedObjects.AddUnique(Object);
+				LeftTotalMass += Object->MeasureTotalMass(LeftDetectedObjects);
+			}
+		}
+	}
+
+	for (int32 RowCount = 0; RowCount < NumberOfLines; ++RowCount)
+	{
+		for (int32 ColCount = 0; ColCount < NumberOfLines; ++ColCount)
+		{
+			FHitResult RightHitResult;
+			float UnitLength = Width / (NumberOfLines - 1);
+			FVector XAxisVector = FVector::ForwardVector * UnitLength * (ColCount - (NumberOfLines - 1) * 0.5f);
+			FVector YAxisVector = FVector::RightVector * UnitLength * (RowCount - (NumberOfLines - 1) * 0.5f);
+			FVector Start = RightPlate->GetComponentLocation() + XAxisVector + YAxisVector;
+			FVector End = Start + FVector::UpVector * TraceLength;
+
+			TArray<AActor*> IgnoredActors;
+			UKismetSystemLibrary::LineTraceSingle(this, Start, End, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), false, IgnoredActors, EDrawDebugTrace::ForOneFrame, RightHitResult, true);
+
+			//World->LineTraceSingleByChannel(RightHitResult, Start, End, ECC_Interactable);
+			
+			IInteractableInterface* Object = Cast<IInteractableInterface>(RightHitResult.GetActor());
+			if (Object && !Object->IsGrabbed() && !RightDetectedObjects.Contains(Object))
+			{
+				RightTotalMass += Object->MeasureTotalMass(RightDetectedObjects);
+				RightDetectedObjects.AddUnique(Object);
+			}
+		}
+	}
+}
+
+void APulley::MovePlate(float DeltaTime)
+{
+	if (LeftPlate == nullptr || RightPlate == nullptr) return;
+	
+	if (LeftTotalMass > RightTotalMass && !bIsLeftHeavy && LeftPlate->GetComponentLocation().Z > LeftPlateLowestLocation.Z)
+	{
+		LeftPlateLocation = LeftPlate->GetComponentLocation();
+		RightPlateLocation = RightPlate->GetComponentLocation();
+		StartLiftRight();
 		bIsLeftHeavy = true;
 		bIsRightHeavy = false;
-		return;
 	}
-	if (PreviousLeftLinearForceZ + 2000.f < PreviousRightLinearForceZ && !bIsRightHeavy && RightPlate->GetComponentLocation().Z > RightPlateOriginZ - RopeThreshold + 5.f)
+	if (LeftTotalMass < RightTotalMass && !bIsRightHeavy && RightPlate->GetComponentLocation().Z > RightPlateLowestLocation.Z)
 	{
-		StartElevateLeftPlate();
-		LeftPlate->WakeRigidBody();
-		RightPlate->WakeRigidBody();
-		bIsRightHeavy = true;
+		LeftPlateLocation = LeftPlate->GetComponentLocation();
+		RightPlateLocation = RightPlate->GetComponentLocation();
+		StartLiftLeft();
 		bIsLeftHeavy = false;
-		return;
-	}
-	
-	FVector LeftLinearForce;
-	FVector LeftAngularForce;
-	LeftConstraint->GetConstraintForce(LeftLinearForce, LeftAngularForce);
-	
-	FVector RightLinearForce;
-	FVector RightAngularForce;
-	RightConstraint->GetConstraintForce(RightLinearForce, RightAngularForce);
-
-	if (PreviousLeftLinearForceZ != LeftLinearForce.Z && LeftPlate->GetComponentVelocity().Size() == 0.f)
-	{
-		PreviousLeftLinearForceZ = LeftLinearForce.Z;
-	}
-	if (PreviousRightLinearForceZ != RightLinearForce.Z && RightPlate->GetComponentVelocity().Size() == 0.f)
-	{
-		PreviousRightLinearForceZ = RightLinearForce.Z;
+		bIsRightHeavy = true;
 	}
 }
 
-void APulley::StartElevateLeftPlate()
+void APulley::StartLiftLeft()
 {
-	LeftElevateTrack.BindDynamic(this, &APulley::ElevateLeftPlate);
-	if (ElevateCurve && LeftElevateTimeline)
+	ElevateTrack.BindDynamic(this, &APulley::Elevate);
+	if (ElevateCurve && ElevateTimeline)
 	{
-		LeftElevateTimeline->AddInterpFloat(ElevateCurve, LeftElevateTrack);
-		LeftElevateTimeline->PlayFromStart();
+		ElevateTimeline->AddInterpFloat(ElevateCurve, ElevateTrack);
+		const float TimelineLength = ElevateTimeline->GetTimelineLength();
+		const float Time = FMath::Clamp((LeftPlateLocation.Z - LeftPlateLowestLocation.Z) / RopeThreshold * TimelineLength, 0.f, TimelineLength);
+		ElevateTimeline->SetPlaybackPosition(Time, false);
+		ElevateTimeline->Play();
 	}
 }
 
-void APulley::StartElevateRightPlate()
+void APulley::StartLiftRight()
 {
-	RightElevateTrack.BindDynamic(this, &APulley::ElevateRightPlate);
-	if (ElevateCurve && RightElevateTimeline)
+	ElevateTrack.BindDynamic(this, &APulley::Elevate);
+	if (ElevateCurve && ElevateTimeline)
 	{
-		RightElevateTimeline->AddInterpFloat(ElevateCurve, RightElevateTrack);
-		RightElevateTimeline->PlayFromStart();
+		ElevateTimeline->AddInterpFloat(ElevateCurve, ElevateTrack);
+		const float TimelineLength = ElevateTimeline->GetTimelineLength();
+		const float Time = FMath::Clamp((RightPlateHighestLocation.Z - RightPlateLocation.Z) / RopeThreshold * TimelineLength, 0.f, TimelineLength);
+		ElevateTimeline->SetPlaybackPosition(Time, false);
+		ElevateTimeline->Reverse();
 	}
 }
 
-void APulley::ElevateLeftPlate(float ElevateValue)
+void APulley::Elevate(float ElevateValue)
 {
-	if (LeftConstraint == nullptr || RightConstraint == nullptr || LeftWheel == nullptr || RightWheel == nullptr) return;
+	if (LeftPlate == nullptr || RightPlate == nullptr) return;
 	
-	const float LeftCurrentZ = ElevateValue * RopeThreshold;
-	const float RightCurrentZ = ElevateValue * -RopeThreshold;
-	LeftConstraint->SetLinearPositionTarget(FVector(0.f, 0.f, LeftCurrentZ));
-	RightConstraint->SetLinearPositionTarget(FVector(0.f, 0.f, RightCurrentZ));
-	const FRotator WheelDeltaRotation(0.f, 0.f, ElevateValue * WheelRotateSpeed);
-	LeftWheel->SetRelativeRotation(WheelDeltaRotation);
-	RightWheel->SetRelativeRotation(WheelDeltaRotation);
-}
-
-void APulley::ElevateRightPlate(float ElevateValue)
-{
-	if (LeftConstraint == nullptr || RightConstraint == nullptr || LeftWheel == nullptr || RightWheel == nullptr) return;
-	
-	const float LeftCurrentZ = (1 - ElevateValue) * RopeThreshold;
-	const float RightCurrentZ = (1 - ElevateValue) * -RopeThreshold;
-	LeftConstraint->SetLinearPositionTarget(FVector(0.f, 0.f, LeftCurrentZ));
-	RightConstraint->SetLinearPositionTarget(FVector(0.f, 0.f, RightCurrentZ));
-	const FRotator WheelDeltaRotation(0.f, 0.f, -ElevateValue * WheelRotateSpeed);
-	LeftWheel->SetRelativeRotation(WheelDeltaRotation);
-	RightWheel->SetRelativeRotation(WheelDeltaRotation);
+	FVector LeftLocation = FMath::Lerp(LeftPlateLowestLocation, LeftPlateHighestLocation, ElevateValue);
+	FVector RightLocation = FMath::Lerp(RightPlateHighestLocation, RightPlateLowestLocation, ElevateValue);
+	LeftPlate->SetWorldLocation(LeftLocation);
+	RightPlate->SetWorldLocation(RightLocation);
 }

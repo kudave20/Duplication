@@ -26,6 +26,7 @@ public:
 	virtual void OnPlace() = 0;
 	virtual void OnDisappear() = 0;
 
+	virtual float MeasureTotalMass(TArray<IInteractableInterface*>& DetectedObjects) = 0;
 	virtual void SetCollisionResponse(ECollisionResponse NewResponse) = 0;
 	
 	virtual UStaticMeshComponent* GetMesh() = 0;

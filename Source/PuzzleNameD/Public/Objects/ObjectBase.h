@@ -18,6 +18,7 @@ class PUZZLENAMED_API AObjectBase : public AActor, public IInteractableInterface
 public:	
 	AObjectBase();
 	virtual void Tick(float DeltaTime) override;
+	virtual float MeasureTotalMass(TArray<IInteractableInterface*>& DetectedObjects) override;
 	virtual void SetCollisionResponse(ECollisionResponse NewResponse) override;
 
 protected:
@@ -48,6 +49,20 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	float Mass;
 
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	float Width = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	float TraceLength = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	int32 NumberOfLines = 5;
+
+	/*
+	* Use it for calculating pulley.
+	*/
+	float TotalMass = 0.f;
+
 	/*
 	* Disappear Effect
 	*/
@@ -74,7 +89,7 @@ private:
 
 	FTimerHandle DuplicateTimer;
 
-	bool bIsGrabbed = false;
+	bool bIsGrabbed;
 
 public:
 	FORCEINLINE FTimerHandle& GetDuplicateTimer() { return DuplicateTimer; }

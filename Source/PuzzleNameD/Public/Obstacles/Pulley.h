@@ -10,6 +10,7 @@
 class UCableComponent;
 class UPhysicsConstraintComponent;
 class AMainCharacter;
+class IInteractableInterface;
 
 UCLASS()
 class PUZZLENAMED_API APulley : public AActor
@@ -48,54 +49,53 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UCableComponent* CenterCable;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	USceneComponent* LeftJoint;
+	void CalculateMass();
+	void MovePlate(float DeltaTime);
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	USceneComponent* RightJoint;
+	bool bIsLeftHeavy;
+	bool bIsRightHeavy;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UPhysicsConstraintComponent* LeftConstraint;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UPhysicsConstraintComponent* RightConstraint;
+	float LeftTotalMass = 0.f;
+	float RightTotalMass = 0.f;
 
-	void MovePlate();
-	
-	bool bIsLeftHeavy = false;
-	bool bIsRightHeavy = false;
-	
-	UPROPERTY()
-	UTimelineComponent* LeftElevateTimeline;
-	FOnTimelineFloat LeftElevateTrack;
+	FVector LeftPlateOriginLocation;
+	FVector LeftPlateHighestLocation;
+	FVector LeftPlateLowestLocation;
 
-	UPROPERTY()
-	UTimelineComponent* RightElevateTimeline;
-	FOnTimelineFloat RightElevateTrack;
+	FVector RightPlateOriginLocation;
+	FVector RightPlateHighestLocation;
+	FVector RightPlateLowestLocation;
+
+	FVector LeftPlateLocation;
+	FVector RightPlateLocation;
 	
 	UPROPERTY(EditAnywhere, Category = "Properties")
-	UCurveFloat* ElevateCurve;
-	
-	void StartElevateLeftPlate();
-	void StartElevateRightPlate();
-	
-	UFUNCTION()
-	void ElevateLeftPlate(float ElevateValue);
-	
-	UFUNCTION()
-	void ElevateRightPlate(float ElevateValue);
-	
-	float LeftPlateOriginZ;
-	float RightPlateOriginZ;
+	float Width = 30.f;
 
-	float PreviousLeftLinearForceZ = 0.f;
-	float PreviousRightLinearForceZ = 0.f;
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	float TraceLength = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	int32 NumberOfLines = 5;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	float RopeThreshold = 200.f;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	float WheelRotateSpeed = 1080.f;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UTimelineComponent* ElevateTimeline;
+	FOnTimelineFloat ElevateTrack;
+
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	UCurveFloat* ElevateCurve;
+
+	void StartLiftLeft();
+	void StartLiftRight();
+	
+	UFUNCTION()
+	void Elevate(float ElevateValue);
 	
 public:
 

@@ -20,10 +20,10 @@ AFan::AFan() : Super()
 	Range = CreateDefaultSubobject<UBoxComponent>(TEXT("Range"));
 	Range->SetupAttachment(RootComponent);
 	Range->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Range->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-	Range->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	Range->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-	Range->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	Range->SetCollisionObjectType(ECC_WorldDynamic);
+	Range->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Range->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	Range->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
 void AFan::BeginPlay()
@@ -70,9 +70,9 @@ void AFan::Push()
 		//TArray<AActor*> CenterIgnoredActors;
 		//UKismetSystemLibrary::LineTraceSingle(this, CenterStart, CenterEnd, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility), false, CenterIgnoredActors, EDrawDebugTrace::ForOneFrame, CenterHitResult, true);
 		GetWorld()->LineTraceSingleByChannel(CenterHitResult, CenterStart, CenterEnd, ECC_Interactable);
-		for (int32 DegreeCount = 0; DegreeCount < 360.0f / DegreeBetweenLines; DegreeCount++)
+		for (int32 DegreeCount = 0; DegreeCount < 360.0f / DegreeBetweenLines; ++DegreeCount)
 		{
-			for (int32 LineCount = 1; LineCount <= UnitNumberOfLines; LineCount++)
+			for (int32 LineCount = 1; LineCount <= UnitNumberOfLines; ++LineCount)
 			{
 				FHitResult HitResult;
 				FVector DeltaVector = GetActorUpVector().RotateAngleAxis(DegreeCount * DegreeBetweenLines, GetActorForwardVector());
