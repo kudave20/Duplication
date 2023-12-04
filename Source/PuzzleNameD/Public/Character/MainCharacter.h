@@ -29,52 +29,52 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
-	UCameraComponent* Camera;
+	TObjectPtr<UCameraComponent> Camera;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UPostProcessComponent* PostProcess;
+	TObjectPtr<UPostProcessComponent> PostProcess;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UPhysicsHandleComponent* PhysicsHandle;
+	TObjectPtr<UPhysicsHandleComponent> PhysicsHandle;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputMappingContext* MainContext;
+	TObjectPtr<UInputMappingContext> MainContext;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* MovementAction;
+	TObjectPtr<UInputAction> MovementAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* LookAction;
+	TObjectPtr<UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* GrabAction;
+	TObjectPtr<UInputAction> GrabAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* DuplicateAction;
+	TObjectPtr<UInputAction> DuplicateAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* DeleteAction;
+	TObjectPtr<UInputAction> DeleteAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* ClearAction;
+	TObjectPtr<UInputAction> ClearAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* ExamineAction;
+	TObjectPtr<UInputAction> ExamineAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* SnapLeftAction;
+	TObjectPtr<UInputAction> SnapLeftAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* SnapRightAction;
+	TObjectPtr<UInputAction> SnapRightAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* SnapUpAction;
+	TObjectPtr<UInputAction> SnapUpAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* SnapDownAction;
+	TObjectPtr<UInputAction> SnapDownAction;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

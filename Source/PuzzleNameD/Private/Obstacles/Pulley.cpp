@@ -84,7 +84,7 @@ void APulley::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	CalculateMass();
-	MovePlate(DeltaTime);
+	MovePlate();
 }
 
 void APulley::CalculateMass()
@@ -151,7 +151,7 @@ void APulley::CalculateMass()
 	}
 }
 
-void APulley::MovePlate(float DeltaTime)
+void APulley::MovePlate()
 {
 	if (LeftPlate == nullptr || RightPlate == nullptr) return;
 	

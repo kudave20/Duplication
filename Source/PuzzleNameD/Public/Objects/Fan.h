@@ -29,16 +29,16 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* Blade;
+	TObjectPtr<UStaticMeshComponent> Blade;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UBoxComponent* Range;
+	TObjectPtr<UBoxComponent> Range;
 
 	UPROPERTY(EditAnywhere, Category = "Material")
-	UMaterialInstance* BladePreviewMaterial;
+	TObjectPtr<UMaterialInstance> BladePreviewMaterial;
 
 	UPROPERTY(EditAnywhere, Category = "Material")
-	UMaterialInstance* BladeOriginalMaterial;
+	TObjectPtr<UMaterialInstance> BladeOriginalMaterial;
 	
 	float RangeX;
 	float RangeY;

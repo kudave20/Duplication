@@ -41,10 +41,10 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* Mesh;
+	TObjectPtr<UStaticMeshComponent> Mesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UBoxComponent* AreaBox;
+	TObjectPtr<UBoxComponent> AreaBox;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	float Mass;
@@ -67,7 +67,7 @@ private:
 	* Disappear Effect
 	*/
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UTimelineComponent* DisappearTimeline;
+	TObjectPtr<UTimelineComponent> DisappearTimeline;
 	FOnTimelineFloat DisappearTrack;
 	FOnTimelineEvent DisappearTimelineFinished;
 

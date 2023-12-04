@@ -26,31 +26,31 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	USceneComponent* Root;
+	TObjectPtr<USceneComponent> Root;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* LeftWheel;
+	TObjectPtr<UStaticMeshComponent> LeftWheel;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* RightWheel;
+	TObjectPtr<UStaticMeshComponent> RightWheel;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* LeftPlate;
+	TObjectPtr<UStaticMeshComponent> LeftPlate;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* RightPlate;
+	TObjectPtr<UStaticMeshComponent> RightPlate;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UCableComponent* LeftCable;
+	TObjectPtr<UCableComponent> LeftCable;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UCableComponent* RightCable;
+	TObjectPtr<UCableComponent> RightCable;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UCableComponent* CenterCable;
+	TObjectPtr<UCableComponent> CenterCable;
 
 	void CalculateMass();
-	void MovePlate(float DeltaTime);
+	void MovePlate();
 
 	bool bIsLeftHeavy;
 	bool bIsRightHeavy;
@@ -85,11 +85,11 @@ private:
 	float WheelRotateSpeed = 1080.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UTimelineComponent* ElevateTimeline;
+	TObjectPtr<UTimelineComponent> ElevateTimeline;
 	FOnTimelineFloat ElevateTrack;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
-	UCurveFloat* ElevateCurve;
+	TObjectPtr<UCurveFloat> ElevateCurve;
 
 	void StartLiftLeft();
 	void StartLiftRight();

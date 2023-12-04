@@ -20,7 +20,7 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* Field;
+	TObjectPtr<UStaticMeshComponent> Field;
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
